@@ -95,18 +95,21 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage-xml
+          retention-days: 7
           path: backend/reports/coverage.xml
 
       - name: Upload coverage HTML
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage-html
+          retention-days: 7
           path: backend/reports/coverage_html
 
       - name: Upload pytest JUnit XML
         uses: actions/upload-artifact@v4
         with:
           name: backend-junit
+          retention-days: 7
           path: backend/reports/junit.xml
 
       - name: Upload pytest raw log (on failure)
@@ -114,7 +117,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: backend-pytest-log
+          retention-days: 7
           path: backend/reports/pytest.log
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          MINIMUM_GREEN: 80
+          MINIMUM_ORANGE: 60
 
   frontend-build:
     runs-on: ubuntu-latest
