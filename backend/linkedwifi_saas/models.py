@@ -92,7 +92,9 @@ class Account(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    __table_args__ = (UniqueConstraint("tenant_id", "phone", name="uq_accounts_phone_tenant"),)
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "phone", name="uq_accounts_phone_tenant"),
+    )
 
 
 class User(Base):
@@ -115,7 +117,9 @@ class User(Base):
     sessions: Mapped[list[SessionModel]] = relationship(back_populates="user")
     payments: Mapped[list[Payment]] = relationship(back_populates="user")
 
-    __table_args__ = (UniqueConstraint("tenant_id", "phone", name="uq_users_phone_tenant"),)
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "phone", name="uq_users_phone_tenant"),
+    )
 
 
 class Package(Base):
@@ -140,7 +144,9 @@ class Package(Base):
     sessions: Mapped[list[SessionModel]] = relationship(back_populates="package")
     payments: Mapped[list[Payment]] = relationship(back_populates="package")
 
-    __table_args__ = (UniqueConstraint("tenant_id", "name", name="uq_package_name_tenant"),)
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "name", name="uq_package_name_tenant"),
+    )
 
 
 class SessionModel(Base):
@@ -156,7 +162,10 @@ class SessionModel(Base):
         UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False, index=True
     )
     package_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("packages.package_id"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("packages.package_id"),
+        nullable=False,
+        index=True,
     )
     phone: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
     mac_address: Mapped[str | None] = mapped_column(String(32), index=True)
@@ -164,11 +173,15 @@ class SessionModel(Base):
     start_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    end_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    end_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, index=True
+    )
     status: Mapped[SessionStatus] = mapped_column(
         Enum(SessionStatus), default=SessionStatus.pending, nullable=False, index=True
     )
-    last_reconnected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_reconnected_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True)
+    )
 
     user: Mapped[User] = relationship(back_populates="sessions")
     package: Mapped[Package] = relationship(back_populates="sessions")
@@ -192,10 +205,15 @@ class Payment(Base):
         UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False, index=True
     )
     package_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("packages.package_id"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("packages.package_id"),
+        nullable=False,
+        index=True,
     )
     phone: Mapped[str] = mapped_column(String(20), nullable=False)
-    mpesa_checkout_request_id: Mapped[str | None] = mapped_column(String(128), index=True)
+    mpesa_checkout_request_id: Mapped[str | None] = mapped_column(
+        String(128), index=True
+    )
     mpesa_receipt: Mapped[str | None] = mapped_column(String(64), index=True)
     amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     status: Mapped[PaymentStatus] = mapped_column(
@@ -218,7 +236,9 @@ class Device(Base):
     tenant_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("tenants.tenant_id"), nullable=False, index=True
     )
-    device_type: Mapped[str] = mapped_column(String(64), nullable=False, default="mikrotik")
+    device_type: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="mikrotik"
+    )
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     ip: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     mac: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
@@ -230,7 +250,9 @@ class Device(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    __table_args__ = (UniqueConstraint("tenant_id", "mac", name="uq_device_mac_tenant"),)
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "mac", name="uq_device_mac_tenant"),
+    )
 
 
 class Ticket(Base):
@@ -266,7 +288,9 @@ class Message(Base):
     )
     sender: Mapped[str] = mapped_column(String(120), nullable=False)
     receiver: Mapped[str] = mapped_column(String(120), nullable=False)
-    type: Mapped[str] = mapped_column(String(64), nullable=False, default="notification")
+    type: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="notification"
+    )
     content: Mapped[str] = mapped_column(Text, nullable=False)
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -285,7 +309,9 @@ class OTPCode(Base):
     phone: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
     role: Mapped[Role] = mapped_column(Enum(Role), nullable=False)
     code_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
     failed_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     lock_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     used: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -293,6 +319,4 @@ class OTPCode(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    __table_args__ = (
-        Index("ix_otp_lookup", "phone", "role", "tenant_id", "used"),
-    )
+    __table_args__ = (Index("ix_otp_lookup", "phone", "role", "tenant_id", "used"),)

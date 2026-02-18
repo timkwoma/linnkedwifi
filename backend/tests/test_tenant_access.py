@@ -34,7 +34,9 @@ def test_enforce_tenant_access_blocks_mismatched_isp_admin_tenant() -> None:
 
 def test_user_cannot_initiate_payment_for_other_phone() -> None:
     tenant_id = uuid4()
-    account = SimpleNamespace(role=Role.user, tenant_id=tenant_id, phone="+254700000001")
+    account = SimpleNamespace(
+        role=Role.user, tenant_id=tenant_id, phone="+254700000001"
+    )
     payload = MpesaSTKPushIn(
         tenant_id=tenant_id,
         phone="+254700000002",

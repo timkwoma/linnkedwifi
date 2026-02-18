@@ -8,7 +8,9 @@ from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 
 class Settings(BaseSettings):
-    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/linkedwifi"
+    database_url: str = (
+        "postgresql+psycopg://postgres:postgres@localhost:5432/linkedwifi"
+    )
     redis_url: str = "redis://localhost:6379/0"
     jwt_secret: str = "change-me"
     jwt_algorithm: str = "HS256"
@@ -28,7 +30,9 @@ class Settings(BaseSettings):
 settings = Settings()
 
 engine = create_engine(settings.database_url, pool_pre_ping=True)
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, class_=Session)
+SessionLocal = sessionmaker(
+    bind=engine, autocommit=False, autoflush=False, class_=Session
+)
 
 
 class Base(DeclarativeBase):

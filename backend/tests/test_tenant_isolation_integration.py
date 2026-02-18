@@ -12,13 +12,21 @@ def test_isp_admin_cannot_access_other_tenant_stats() -> None:
     phone = "+254700000002"
 
     with SessionLocal() as db:
-        tenant_a = db.scalar(select(Tenant).where(Tenant.email == "ops@linkedwifi.test"))
-        tenant_b = db.scalar(select(Tenant).where(Tenant.email == "admin@metronet.test"))
+        tenant_a = db.scalar(
+            select(Tenant).where(Tenant.email == "ops@linkedwifi.test")
+        )
+        tenant_b = db.scalar(
+            select(Tenant).where(Tenant.email == "admin@metronet.test")
+        )
         assert tenant_a is not None
         assert tenant_b is not None
         tenant_a_id = str(tenant_a.tenant_id)
         tenant_b_id = str(tenant_b.tenant_id)
-        db.execute(delete(OTPCode).where(OTPCode.phone == phone, OTPCode.tenant_id == tenant_a.tenant_id))
+        db.execute(
+            delete(OTPCode).where(
+                OTPCode.phone == phone, OTPCode.tenant_id == tenant_a.tenant_id
+            )
+        )
         db.commit()
 
     client = TestClient(app)

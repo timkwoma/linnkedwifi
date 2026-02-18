@@ -32,10 +32,14 @@ def _ensure_otp_schema_compatibility() -> None:
     with engine.begin() as conn:
         if "failed_attempts" not in columns:
             conn.execute(
-                text("alter table otp_codes add column failed_attempts int not null default 0")
+                text(
+                    "alter table otp_codes add column failed_attempts int not null default 0"
+                )
             )
         if "lock_until" not in columns:
-            conn.execute(text("alter table otp_codes add column lock_until timestamptz"))
+            conn.execute(
+                text("alter table otp_codes add column lock_until timestamptz")
+            )
 
         indexes = {idx["name"] for idx in insp.get_indexes("otp_codes")}
         if "ix_otp_lookup" not in indexes:
@@ -54,11 +58,15 @@ def seed_data() -> None:
         if tenant:
             return
 
-        tenant = Tenant(name="LinkedWiFi Demo ISP", email="ops@linkedwifi.test", plan="pro")
+        tenant = Tenant(
+            name="LinkedWiFi Demo ISP", email="ops@linkedwifi.test", plan="pro"
+        )
         db.add(tenant)
         db.flush()
 
-        demo_tenant_2 = Tenant(name="MetroNet ISP", email="admin@metronet.test", plan="starter")
+        demo_tenant_2 = Tenant(
+            name="MetroNet ISP", email="admin@metronet.test", plan="starter"
+        )
         db.add(demo_tenant_2)
         db.flush()
 

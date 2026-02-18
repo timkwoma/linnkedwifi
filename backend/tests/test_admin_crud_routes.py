@@ -49,12 +49,16 @@ def test_update_ticket_status_sets_resolved_at() -> None:
     tenant_id = uuid4()
     ticket_id = uuid4()
     account = SimpleNamespace(role=Role.isp_admin, tenant_id=tenant_id)
-    ticket = SimpleNamespace(tenant_id=tenant_id, status=TicketStatus.open, resolved_at=None)
+    ticket = SimpleNamespace(
+        tenant_id=tenant_id, status=TicketStatus.open, resolved_at=None
+    )
     db = MagicMock()
     db.scalar.return_value = ticket
 
     payload = ispadmin_router.TicketStatusIn(status=TicketStatus.resolved)
-    result = ispadmin_router.update_ticket_status(tenant_id, ticket_id, payload, db, account)
+    result = ispadmin_router.update_ticket_status(
+        tenant_id, ticket_id, payload, db, account
+    )
 
     assert result == {"message": "updated"}
     assert ticket.status == TicketStatus.resolved

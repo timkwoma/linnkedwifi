@@ -66,7 +66,9 @@ def create_device(
 ) -> dict:
     enforce_tenant_access(account, payload.tenant_id)
     exists = db.scalar(
-        select(Device).where(and_(Device.tenant_id == payload.tenant_id, Device.mac == payload.mac))
+        select(Device).where(
+            and_(Device.tenant_id == payload.tenant_id, Device.mac == payload.mac)
+        )
     )
     if exists:
         raise HTTPException(status_code=409, detail="Device MAC already exists")

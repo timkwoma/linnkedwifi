@@ -16,7 +16,11 @@ def _login_isp_admin(client: TestClient) -> tuple[str, str]:
         tenant = db.scalar(select(Tenant).where(Tenant.email == "ops@linkedwifi.test"))
         assert tenant is not None
         tenant_id = str(tenant.tenant_id)
-        db.execute(delete(OTPCode).where(OTPCode.phone == phone, OTPCode.tenant_id == tenant.tenant_id))
+        db.execute(
+            delete(OTPCode).where(
+                OTPCode.phone == phone, OTPCode.tenant_id == tenant.tenant_id
+            )
+        )
         db.commit()
 
     req = client.post(
@@ -27,7 +31,12 @@ def _login_isp_admin(client: TestClient) -> tuple[str, str]:
     code = req.json()["dev_otp"]
     ver = client.post(
         "/auth/verify-otp",
-        json={"phone": phone, "role": "isp_admin", "tenant_id": tenant_id, "code": code},
+        json={
+            "phone": phone,
+            "role": "isp_admin",
+            "tenant_id": tenant_id,
+            "code": code,
+        },
     )
     assert ver.status_code == 200
     return ver.json()["access_token"], tenant_id

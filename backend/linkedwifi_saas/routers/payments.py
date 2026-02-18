@@ -27,14 +27,19 @@ async def initiate_stk_push(
         raise HTTPException(status_code=403, detail="Phone access denied")
     package = db.scalar(
         select(Package).where(
-            and_(Package.package_id == payload.package_id, Package.tenant_id == payload.tenant_id)
+            and_(
+                Package.package_id == payload.package_id,
+                Package.tenant_id == payload.tenant_id,
+            )
         )
     )
     if not package:
         raise HTTPException(status_code=404, detail="Package not found")
 
     user = db.scalar(
-        select(User).where(and_(User.tenant_id == payload.tenant_id, User.phone == payload.phone))
+        select(User).where(
+            and_(User.tenant_id == payload.tenant_id, User.phone == payload.phone)
+        )
     )
     if not user:
         user = User(tenant_id=payload.tenant_id, phone=payload.phone, status="active")
@@ -69,7 +74,10 @@ def mpesa_callback(
     db: Session = Depends(get_db),
     callback_secret: str | None = Header(default=None, alias="X-Callback-Secret"),
 ) -> dict:
-    if settings.mpesa_callback_secret and callback_secret != settings.mpesa_callback_secret:
+    if (
+        settings.mpesa_callback_secret
+        and callback_secret != settings.mpesa_callback_secret
+    ):
         raise HTTPException(status_code=403, detail="Invalid callback signature")
 
     stk = payload.get("Body", {}).get("stkCallback", {})
@@ -80,7 +88,9 @@ def mpesa_callback(
     try:
         result_code = int(raw_result_code)
     except (TypeError, ValueError):
-        raise HTTPException(status_code=400, detail="Invalid callback payload") from None
+        raise HTTPException(
+            status_code=400, detail="Invalid callback payload"
+        ) from None
 
     payment = db.scalar(
         select(Payment).where(Payment.mpesa_checkout_request_id == checkout_request_id)

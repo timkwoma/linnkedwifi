@@ -71,7 +71,10 @@ def tenant_stats(
 ) -> dict:
     enforce_tenant_access(account, tenant_id)
     return {
-        "users": db.scalar(select(func.count(User.user_id)).where(User.tenant_id == tenant_id)) or 0,
+        "users": db.scalar(
+            select(func.count(User.user_id)).where(User.tenant_id == tenant_id)
+        )
+        or 0,
         "packages": db.scalar(
             select(func.count(Package.package_id)).where(Package.tenant_id == tenant_id)
         )
@@ -79,20 +82,29 @@ def tenant_stats(
         "payments_total": float(
             db.scalar(
                 select(func.coalesce(func.sum(Payment.amount), 0)).where(
-                    and_(Payment.tenant_id == tenant_id, Payment.status == PaymentStatus.success)
+                    and_(
+                        Payment.tenant_id == tenant_id,
+                        Payment.status == PaymentStatus.success,
+                    )
                 )
             )
             or 0
         ),
         "active_sessions": db.scalar(
             select(func.count(SessionModel.session_id)).where(
-                and_(SessionModel.tenant_id == tenant_id, SessionModel.status == SessionStatus.active)
+                and_(
+                    SessionModel.tenant_id == tenant_id,
+                    SessionModel.status == SessionStatus.active,
+                )
             )
         )
         or 0,
         "open_tickets": db.scalar(
             select(func.count(Ticket.ticket_id)).where(
-                and_(Ticket.tenant_id == tenant_id, Ticket.status != TicketStatus.resolved)
+                and_(
+                    Ticket.tenant_id == tenant_id,
+                    Ticket.status != TicketStatus.resolved,
+                )
             )
         )
         or 0,
@@ -176,7 +188,9 @@ def update_package(
 ) -> dict:
     enforce_tenant_access(account, tenant_id)
     p = db.scalar(
-        select(Package).where(and_(Package.package_id == package_id, Package.tenant_id == tenant_id))
+        select(Package).where(
+            and_(Package.package_id == package_id, Package.tenant_id == tenant_id)
+        )
     )
     if not p:
         raise HTTPException(status_code=404, detail="Package not found")
@@ -201,7 +215,9 @@ def delete_package(
 ) -> dict:
     enforce_tenant_access(account, tenant_id)
     p = db.scalar(
-        select(Package).where(and_(Package.package_id == package_id, Package.tenant_id == tenant_id))
+        select(Package).where(
+            and_(Package.package_id == package_id, Package.tenant_id == tenant_id)
+        )
     )
     if not p:
         raise HTTPException(status_code=404, detail="Package not found")
@@ -220,7 +236,9 @@ def list_payments(
 ) -> list[dict]:
     enforce_tenant_access(account, tenant_id)
     rows = db.scalars(
-        select(Payment).where(Payment.tenant_id == tenant_id).order_by(Payment.created_at.desc())
+        select(Payment)
+        .where(Payment.tenant_id == tenant_id)
+        .order_by(Payment.created_at.desc())
     ).all()
     return [
         {
@@ -265,7 +283,9 @@ def create_ticket(
 ) -> dict:
     enforce_tenant_access(account, tenant_id)
     user = db.scalar(
-        select(User).where(and_(User.tenant_id == tenant_id, User.user_id == payload.user_id))
+        select(User).where(
+            and_(User.tenant_id == tenant_id, User.user_id == payload.user_id)
+        )
     )
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -285,7 +305,11 @@ def update_ticket_status(
     account=Depends(require_role(Role.isp_admin, Role.super_admin)),
 ) -> dict:
     enforce_tenant_access(account, tenant_id)
-    t = db.scalar(select(Ticket).where(and_(Ticket.ticket_id == ticket_id, Ticket.tenant_id == tenant_id)))
+    t = db.scalar(
+        select(Ticket).where(
+            and_(Ticket.ticket_id == ticket_id, Ticket.tenant_id == tenant_id)
+        )
+    )
     if not t:
         raise HTTPException(status_code=404, detail="Ticket not found")
 

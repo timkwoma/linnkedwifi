@@ -15,7 +15,9 @@ def test_mpesa_callback_rejects_missing_callback_secret_when_required(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     db = MagicMock()
-    monkeypatch.setattr(payments_router.settings, "mpesa_callback_secret", "topsecret", raising=False)
+    monkeypatch.setattr(
+        payments_router.settings, "mpesa_callback_secret", "topsecret", raising=False
+    )
     with pytest.raises(HTTPException) as exc:
         payments_router.mpesa_callback(
             {"Body": {"stkCallback": {"CheckoutRequestID": "abc", "ResultCode": 0}}},
@@ -29,7 +31,9 @@ def test_mpesa_callback_rejects_invalid_callback_secret_when_required(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     db = MagicMock()
-    monkeypatch.setattr(payments_router.settings, "mpesa_callback_secret", "topsecret", raising=False)
+    monkeypatch.setattr(
+        payments_router.settings, "mpesa_callback_secret", "topsecret", raising=False
+    )
     with pytest.raises(HTTPException) as exc:
         payments_router.mpesa_callback(
             {"Body": {"stkCallback": {"CheckoutRequestID": "abc", "ResultCode": 0}}},
@@ -45,7 +49,9 @@ def test_mpesa_callback_allows_valid_callback_secret(
     db = MagicMock()
     payment = SimpleNamespace(status=PaymentStatus.success)
     db.scalar.return_value = payment
-    monkeypatch.setattr(payments_router.settings, "mpesa_callback_secret", "topsecret", raising=False)
+    monkeypatch.setattr(
+        payments_router.settings, "mpesa_callback_secret", "topsecret", raising=False
+    )
 
     result = payments_router.mpesa_callback(
         {"Body": {"stkCallback": {"CheckoutRequestID": "abc", "ResultCode": 0}}},
@@ -58,7 +64,9 @@ def test_mpesa_callback_allows_valid_callback_secret(
 def test_mpesa_callback_rejects_invalid_payload() -> None:
     db = MagicMock()
     with pytest.raises(HTTPException) as exc:
-        payments_router.mpesa_callback({"Body": {"stkCallback": {"CheckoutRequestID": "abc"}}}, db)
+        payments_router.mpesa_callback(
+            {"Body": {"stkCallback": {"CheckoutRequestID": "abc"}}}, db
+        )
     assert exc.value.status_code == 400
 
 
@@ -74,7 +82,9 @@ def test_mpesa_callback_is_idempotent_for_processed_payment() -> None:
     db.commit.assert_not_called()
 
 
-def test_mpesa_callback_success_marks_payment_and_activates_session(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_mpesa_callback_success_marks_payment_and_activates_session(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     db = MagicMock()
     payment = SimpleNamespace(
         status=PaymentStatus.pending,
@@ -91,7 +101,9 @@ def test_mpesa_callback_success_marks_payment_and_activates_session(monkeypatch:
     def _fake_session_activation(*args, **kwargs):
         calls.append(kwargs)
 
-    monkeypatch.setattr(payments_router, "create_session_after_payment", _fake_session_activation)
+    monkeypatch.setattr(
+        payments_router, "create_session_after_payment", _fake_session_activation
+    )
 
     payload = {
         "Body": {

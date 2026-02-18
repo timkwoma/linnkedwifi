@@ -4,6 +4,7 @@ Revision ID: 20260217_0001
 Revises:
 Create Date: 2026-02-17 00:00:00
 """
+
 from __future__ import annotations
 
 from alembic import op
@@ -38,10 +39,22 @@ def upgrade() -> None:
             sa.Column("role", sa.String(length=32), nullable=False),
             sa.Column("code_hash", sa.String(length=255), nullable=False),
             sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
-            sa.Column("failed_attempts", sa.Integer(), server_default=sa.text("0"), nullable=False),
+            sa.Column(
+                "failed_attempts",
+                sa.Integer(),
+                server_default=sa.text("0"),
+                nullable=False,
+            ),
             sa.Column("lock_until", sa.DateTime(timezone=True), nullable=True),
-            sa.Column("used", sa.Boolean(), server_default=sa.text("false"), nullable=False),
-            sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+            sa.Column(
+                "used", sa.Boolean(), server_default=sa.text("false"), nullable=False
+            ),
+            sa.Column(
+                "created_at",
+                sa.DateTime(timezone=True),
+                server_default=sa.text("now()"),
+                nullable=False,
+            ),
             sa.ForeignKeyConstraint(["tenant_id"], ["tenants.tenant_id"]),
             sa.PrimaryKeyConstraint("otp_id"),
         )
@@ -57,10 +70,18 @@ def upgrade() -> None:
     if "failed_attempts" not in columns:
         op.add_column(
             "otp_codes",
-            sa.Column("failed_attempts", sa.Integer(), server_default=sa.text("0"), nullable=False),
+            sa.Column(
+                "failed_attempts",
+                sa.Integer(),
+                server_default=sa.text("0"),
+                nullable=False,
+            ),
         )
     if "lock_until" not in columns:
-        op.add_column("otp_codes", sa.Column("lock_until", sa.DateTime(timezone=True), nullable=True))
+        op.add_column(
+            "otp_codes",
+            sa.Column("lock_until", sa.DateTime(timezone=True), nullable=True),
+        )
 
     indexes = {idx["name"] for idx in inspector.get_indexes("otp_codes")}
     if "ix_otp_lookup" not in indexes:

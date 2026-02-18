@@ -19,4 +19,3 @@ def test_access_token_roundtrip() -> None:
     )
     payload = decode_access_token(token)
     assert payload["role"] == "super_admin"
-

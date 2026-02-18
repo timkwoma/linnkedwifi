@@ -36,4 +36,3 @@ def run_worker_once() -> int:
         return count
     finally:
         db.close()
-

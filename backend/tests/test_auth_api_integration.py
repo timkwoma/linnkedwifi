@@ -14,7 +14,11 @@ def test_isp_admin_otp_login_flow_against_real_db() -> None:
     with SessionLocal() as db:
         tenant = db.scalar(select(Tenant).where(Tenant.email == "ops@linkedwifi.test"))
         assert tenant is not None
-        db.execute(delete(OTPCode).where(OTPCode.phone == phone, OTPCode.tenant_id == tenant.tenant_id))
+        db.execute(
+            delete(OTPCode).where(
+                OTPCode.phone == phone, OTPCode.tenant_id == tenant.tenant_id
+            )
+        )
         db.commit()
         tenant_id = str(tenant.tenant_id)
 

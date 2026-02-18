@@ -8,7 +8,15 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Account, Payment, PaymentStatus, Role, SessionModel, SessionStatus, Tenant
+from ..models import (
+    Account,
+    Payment,
+    PaymentStatus,
+    Role,
+    SessionModel,
+    SessionStatus,
+    Tenant,
+)
 from ..security import require_role
 
 router = APIRouter(prefix="/superadmin", tags=["superadmin"])
@@ -32,11 +40,15 @@ def stats(
         "tenants": db.scalar(select(func.count(Tenant.tenant_id))) or 0,
         "accounts": db.scalar(select(func.count(Account.account_id))) or 0,
         "payments_success": db.scalar(
-            select(func.count(Payment.payment_id)).where(Payment.status == PaymentStatus.success)
+            select(func.count(Payment.payment_id)).where(
+                Payment.status == PaymentStatus.success
+            )
         )
         or 0,
         "active_sessions": db.scalar(
-            select(func.count(SessionModel.session_id)).where(SessionModel.status == SessionStatus.active)
+            select(func.count(SessionModel.session_id)).where(
+                SessionModel.status == SessionStatus.active
+            )
         )
         or 0,
     }

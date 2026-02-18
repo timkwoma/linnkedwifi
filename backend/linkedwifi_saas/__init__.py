@@ -1,2 +1,1 @@
 """LINKEDWIFI backend package."""
-

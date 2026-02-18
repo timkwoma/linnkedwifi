@@ -9,7 +9,9 @@ from ..database import settings
 
 logger = logging.getLogger(__name__)
 
-radius_engine = create_engine(settings.radius_db_url or settings.database_url, pool_pre_ping=True)
+radius_engine = create_engine(
+    settings.radius_db_url or settings.database_url, pool_pre_ping=True
+)
 
 
 def _upsert_radcheck(phone: str, attribute: str, op: str, value: str) -> None:
@@ -62,7 +64,9 @@ def authorize_session(
         _upsert_radcheck(phone, "Calling-Station-Id", "==", mac_address)
     if ip_address:
         _upsert_radreply(phone, "Framed-IP-Address", ":=", ip_address)
-    _upsert_radreply(phone, "WISPr-Session-Terminate-Time", ":=", expires_at.isoformat())
+    _upsert_radreply(
+        phone, "WISPr-Session-Terminate-Time", ":=", expires_at.isoformat()
+    )
     logger.info(
         "FreeRADIUS authorize: phone=%s mac=%s ip=%s expires_at=%s",
         phone,
@@ -74,6 +78,10 @@ def authorize_session(
 
 def block_session(phone: str) -> None:
     with radius_engine.begin() as conn:
-        conn.execute(text("delete from radcheck where username = :username"), {"username": phone})
-        conn.execute(text("delete from radreply where username = :username"), {"username": phone})
+        conn.execute(
+            text("delete from radcheck where username = :username"), {"username": phone}
+        )
+        conn.execute(
+            text("delete from radreply where username = :username"), {"username": phone}
+        )
     logger.info("FreeRADIUS block: phone=%s", phone)

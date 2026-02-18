@@ -17,11 +17,15 @@ async def get_access_token() -> str:
             auth=auth,
         )
     if response.status_code >= 400:
-        raise HTTPException(status_code=502, detail=f"M-Pesa auth failed: {response.text}")
+        raise HTTPException(
+            status_code=502, detail=f"M-Pesa auth failed: {response.text}"
+        )
     return response.json()["access_token"]
 
 
-async def stk_push(phone: str, amount: float, account_reference: str, transaction_desc: str) -> dict:
+async def stk_push(
+    phone: str, amount: float, account_reference: str, transaction_desc: str
+) -> dict:
     token = await get_access_token()
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     password = base64.b64encode(
@@ -48,6 +52,7 @@ async def stk_push(phone: str, amount: float, account_reference: str, transactio
             headers=headers,
         )
     if response.status_code >= 400:
-        raise HTTPException(status_code=502, detail=f"M-Pesa STK push failed: {response.text}")
+        raise HTTPException(
+            status_code=502, detail=f"M-Pesa STK push failed: {response.text}"
+        )
     return response.json()
-

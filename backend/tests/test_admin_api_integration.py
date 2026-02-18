@@ -3,14 +3,16 @@ from __future__ import annotations
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
-from sqlalchemy import and_, select
+from sqlalchemy import select
 
 from linkedwifi_saas.database import SessionLocal
 from linkedwifi_saas.main import app
 from linkedwifi_saas.models import Package, Tenant, Ticket, User
 
 
-def _otp_login(client: TestClient, *, phone: str, role: str, tenant_id: str | None) -> str:
+def _otp_login(
+    client: TestClient, *, phone: str, role: str, tenant_id: str | None
+) -> str:
     req = client.post(
         "/auth/request-otp",
         json={"phone": phone, "role": role, "tenant_id": tenant_id},
@@ -135,6 +137,10 @@ def test_ispadmin_package_and_ticket_workflow_integration() -> None:
 
         ticket = db.get(Ticket, ticket_id)
         assert ticket is not None
-        status_value = ticket.status.value if hasattr(ticket.status, "value") else str(ticket.status)
+        status_value = (
+            ticket.status.value
+            if hasattr(ticket.status, "value")
+            else str(ticket.status)
+        )
         assert status_value == "resolved"
         assert ticket.resolved_at is not None

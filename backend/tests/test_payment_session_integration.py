@@ -8,7 +8,15 @@ from sqlalchemy import and_, select
 
 from linkedwifi_saas.database import SessionLocal
 from linkedwifi_saas.main import app
-from linkedwifi_saas.models import Package, Payment, PaymentStatus, SessionModel, SessionStatus, Tenant, User
+from linkedwifi_saas.models import (
+    Package,
+    Payment,
+    PaymentStatus,
+    SessionModel,
+    SessionStatus,
+    Tenant,
+    User,
+)
 
 
 def test_mpesa_callback_creates_session_and_replay_is_idempotent(monkeypatch) -> None:
@@ -20,19 +28,27 @@ def test_mpesa_callback_creates_session_and_replay_is_idempotent(monkeypatch) ->
     receipt = f"R-{str(uuid4())[:8]}"
 
     # Avoid FreeRADIUS SQL writes in integration CI DB.
-    monkeypatch.setattr("linkedwifi_saas.session_engine.authorize_session", lambda **kwargs: None)
+    monkeypatch.setattr(
+        "linkedwifi_saas.session_engine.authorize_session", lambda **kwargs: None
+    )
 
     with SessionLocal() as db:
         tenant = db.scalar(select(Tenant).where(Tenant.email == "ops@linkedwifi.test"))
         assert tenant is not None
         tenant_id = tenant.tenant_id
 
-        user = db.scalar(select(User).where(and_(User.tenant_id == tenant_id, User.phone == "+254700100001")))
+        user = db.scalar(
+            select(User).where(
+                and_(User.tenant_id == tenant_id, User.phone == "+254700100001")
+            )
+        )
         assert user is not None
         user_id = user.user_id
         phone = user.phone
 
-        package = db.scalar(select(Package).where(Package.tenant_id == tenant_id).limit(1))
+        package = db.scalar(
+            select(Package).where(Package.tenant_id == tenant_id).limit(1)
+        )
         assert package is not None
         package_id = package.package_id
         before_count = len(
@@ -118,7 +134,9 @@ def test_mpesa_callback_creates_session_and_replay_is_idempotent(monkeypatch) ->
         assert len(sessions_after_replay) == before_count + 1
 
 
-def test_mpesa_callback_failure_marks_payment_failed_and_creates_no_session(monkeypatch) -> None:
+def test_mpesa_callback_failure_marks_payment_failed_and_creates_no_session(
+    monkeypatch,
+) -> None:
     tenant_id = None
     user_id = None
     package_id = None
@@ -126,19 +144,27 @@ def test_mpesa_callback_failure_marks_payment_failed_and_creates_no_session(monk
     checkout_id = f"ws-co-{uuid4()}"
 
     # Ensure no external FreeRADIUS dependency in CI.
-    monkeypatch.setattr("linkedwifi_saas.session_engine.authorize_session", lambda **kwargs: None)
+    monkeypatch.setattr(
+        "linkedwifi_saas.session_engine.authorize_session", lambda **kwargs: None
+    )
 
     with SessionLocal() as db:
         tenant = db.scalar(select(Tenant).where(Tenant.email == "ops@linkedwifi.test"))
         assert tenant is not None
         tenant_id = tenant.tenant_id
 
-        user = db.scalar(select(User).where(and_(User.tenant_id == tenant_id, User.phone == "+254700100001")))
+        user = db.scalar(
+            select(User).where(
+                and_(User.tenant_id == tenant_id, User.phone == "+254700100001")
+            )
+        )
         assert user is not None
         user_id = user.user_id
         phone = user.phone
 
-        package = db.scalar(select(Package).where(Package.tenant_id == tenant_id).limit(1))
+        package = db.scalar(
+            select(Package).where(Package.tenant_id == tenant_id).limit(1)
+        )
         assert package is not None
         package_id = package.package_id
         before_count = len(

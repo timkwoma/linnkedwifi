@@ -7,7 +7,9 @@ from linkedwifi_saas.main import app
 
 
 def test_mpesa_callback_secret_enforced_over_http(monkeypatch) -> None:
-    monkeypatch.setattr(settings, "mpesa_callback_secret", "integration-secret", raising=False)
+    monkeypatch.setattr(
+        settings, "mpesa_callback_secret", "integration-secret", raising=False
+    )
     client = TestClient(app)
 
     payload = {

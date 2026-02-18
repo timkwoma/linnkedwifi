@@ -32,7 +32,9 @@ def create_session_after_payment(
         raise HTTPException(status_code=404, detail="User not found")
 
     package = db.scalar(
-        select(Package).where(and_(Package.package_id == package_id, Package.tenant_id == tenant_id))
+        select(Package).where(
+            and_(Package.package_id == package_id, Package.tenant_id == tenant_id)
+        )
     )
     if not package:
         raise HTTPException(status_code=404, detail="Package not found")
@@ -56,7 +58,9 @@ def create_session_after_payment(
     user.ip_address = ip_address
     db.flush()
 
-    authorize_session(phone=phone, mac_address=mac_address, ip_address=ip_address, expires_at=end_time)
+    authorize_session(
+        phone=phone, mac_address=mac_address, ip_address=ip_address, expires_at=end_time
+    )
     return session
 
 
@@ -96,7 +100,9 @@ def reconnect_session(
     session.mac_address = mac_address
     session.ip_address = ip_address
     session.last_reconnected_at = now
-    authorize_session(phone=phone, mac_address=mac_address, ip_address=ip_address, expires_at=end)
+    authorize_session(
+        phone=phone, mac_address=mac_address, ip_address=ip_address, expires_at=end
+    )
     return session
 
 
@@ -116,4 +122,3 @@ def expire_stale_sessions(db: Session) -> int:
         block_session(session.phone)
 
     return len(stale)
-

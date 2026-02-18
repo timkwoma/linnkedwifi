@@ -52,7 +52,8 @@ def _enforce_otp_request_limits(
                 OTPCode.phone == phone,
                 OTPCode.role == role,
                 OTPCode.tenant_id == tenant_id,
-                OTPCode.created_at >= datetime.fromtimestamp(phone_cutoff, timezone.utc),
+                OTPCode.created_at
+                >= datetime.fromtimestamp(phone_cutoff, timezone.utc),
             )
         )
         .order_by(OTPCode.created_at.desc())
@@ -77,9 +78,13 @@ def _enforce_otp_request_limits(
 
 
 @router.post("/request-otp")
-def request_otp(payload: OTPRequestIn, request: Request, db: Session = Depends(get_db)) -> dict:
+def request_otp(
+    payload: OTPRequestIn, request: Request, db: Session = Depends(get_db)
+) -> dict:
     if payload.role in (Role.user, Role.isp_admin) and not payload.tenant_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="tenant_id is required")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="tenant_id is required"
+        )
     if payload.role == Role.super_admin and payload.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -131,7 +136,9 @@ def request_otp(payload: OTPRequestIn, request: Request, db: Session = Depends(g
 
 
 @router.post("/verify-otp", response_model=AuthTokenOut)
-def verify_otp_code(payload: OTPVerifyIn, db: Session = Depends(get_db)) -> AuthTokenOut:
+def verify_otp_code(
+    payload: OTPVerifyIn, db: Session = Depends(get_db)
+) -> AuthTokenOut:
     otp = db.scalar(
         select(OTPCode)
         .where(
@@ -149,7 +156,11 @@ def verify_otp_code(payload: OTPVerifyIn, db: Session = Depends(get_db)) -> Auth
 
     now = datetime.now(timezone.utc)
     if otp.lock_until is not None:
-        lock_until = otp.lock_until if otp.lock_until.tzinfo else otp.lock_until.replace(tzinfo=timezone.utc)
+        lock_until = (
+            otp.lock_until
+            if otp.lock_until.tzinfo
+            else otp.lock_until.replace(tzinfo=timezone.utc)
+        )
         if lock_until > now:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,

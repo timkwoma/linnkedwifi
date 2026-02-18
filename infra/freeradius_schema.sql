@@ -16,4 +16,3 @@ create table if not exists radreply (
     value varchar(253) not null
 );
 create index if not exists ix_radreply_username on radreply (username);
-
