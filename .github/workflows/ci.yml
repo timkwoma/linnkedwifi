@@ -83,24 +83,38 @@ jobs:
           . .venv/bin/activate
           ruff check backend linkedwifi_saas tests || true
 
-      - name: Run backend tests and collect coverage
+      - name: Run backend tests, collect coverage, and capture logs
         working-directory: backend
         run: |
           . .venv/bin/activate
           mkdir -p reports
-          pytest -q --maxfail=1 --disable-warnings --cov=linkedwifi_saas --cov-report=xml:coverage.xml --junitxml=reports/junit.xml
+          # run pytest, write full terminal output to reports/pytest.log while preserving exit code
+          pytest -q --maxfail=1 --disable-warnings --cov=linkedwifi_saas --cov-report=xml:reports/coverage.xml --cov-report=html:reports/coverage_html --junitxml=reports/junit.xml 2>&1 | tee reports/pytest.log; exit ${PIPESTATUS[0]}
 
-      - name: Upload coverage artifact
+      - name: Upload coverage XML
         uses: actions/upload-artifact@v4
         with:
-          name: backend-coverage
-          path: backend/coverage.xml
+          name: backend-coverage-xml
+          path: backend/reports/coverage.xml
+
+      - name: Upload coverage HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-html
+          path: backend/reports/coverage_html
 
       - name: Upload pytest JUnit XML
         uses: actions/upload-artifact@v4
         with:
           name: backend-junit
           path: backend/reports/junit.xml
+
+      - name: Upload pytest raw log (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-pytest-log
+          path: backend/reports/pytest.log
 
   frontend-build:
     runs-on: ubuntu-latest
