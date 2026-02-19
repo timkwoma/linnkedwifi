@@ -139,36 +139,18 @@ npm run dev
 
 ### Using Docker (Recommended for local development)
 
-Create `docker-compose.local.yml` in the repo root:
-
-```yaml
-version: '3.8'
-
-services:
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: linkedwifi
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  redis:
-    image: redis:7
-    ports:
-      - '6379:6379'
-
-volumes:
-  postgres_data:
-```
+The repo includes `docker-compose.local.yml` which starts Postgres 15 and Redis 7 with health checks.
 
 **Start services:**
 
 ```bash
 docker-compose -f docker-compose.local.yml up -d
+```
+
+**Check services:**
+
+```bash
+docker-compose -f docker-compose.local.yml ps
 ```
 
 **Stop services:**
@@ -177,7 +159,32 @@ docker-compose -f docker-compose.local.yml up -d
 docker-compose -f docker-compose.local.yml down
 ```
 
-### Run Migrations & Seed Data
+**Cleanup (remove volumes):**
+
+```bash
+docker-compose -f docker-compose.local.yml down -v
+```
+
+### Manually with Docker commands
+
+```bash
+# Start Postgres
+docker run -d \
+  -e POSTGRES_DB=linkedwifi \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5432:5432 \
+  --name linkedwifi-postgres \
+  postgres:15
+
+# Start Redis
+docker run -d \
+  -p 6379:6379 \
+  --name linkedwifi-redis \
+  redis:7
+```
+
+## Running Migrations & Seed Data
 
 After DB is running:
 
@@ -299,6 +306,95 @@ When you open a PR, GitHub Actions will post a coverage delta comment showing:
 - Lines added/removed
 - Green (≥80%) / Orange (≥60%) / Red (<60%) thresholds
 
+## Docker & Container Setup
+
+### Local Docker Image Builds
+
+To build and test Docker images locally:
+
+```bash
+# Build backend image
+docker build -t linkedwifi-backend:dev ./backend
+
+# Build frontend image
+docker build -t linkedwifi-frontend:dev ./frontend
+
+# Run containers
+docker run -p 8000:8000 -e DATABASE_URL=postgresql+psycopg://postgres:postgres@host.docker.internal:5432/linkedwifi linkedwifi-backend:dev
+docker run -p 3000:3000 linkedwifi-frontend:dev
+```
+
+Ensure Postgres + Redis are running on your host (via docker-compose.local.yml).
+
+### Docker Hub / GHCR Push (CI Only)
+
+The CI workflow automatically builds and pushes Docker images on successful tests (main branch only).
+
+To enable:
+
+1. Create Docker Hub account (or use GitHub Container Registry)
+2. Add these GitHub Actions Secrets to your repo:
+   - `DOCKER_USERNAME` — your Docker Hub username
+   - `DOCKER_PASSWORD` — your Docker Hub access token (or PAT)
+3. Push to main → CI will build and push images to:
+   - `yourusername/linkedwifi-backend:latest`
+   - `yourusername/linkedwifi-backend:${COMMIT_SHA}`
+   - `yourusername/linkedwifi-frontend:latest`
+   - `yourusername/linkedwifi-frontend:${COMMIT_SHA}`
+
+## Dependency Management
+
+### Automated Dependency Updates (Dependabot)
+
+The repo uses **Dependabot** for automated dependency updates:
+
+- **Python** (`backend/requirements.txt`) — Weekly Monday updates
+- **Node.js** (`frontend/package.json`) — Weekly Monday updates
+- **GitHub Actions** (`.github/workflows/`) — Weekly Monday updates
+
+Dependabot will:
+- Create PRs with dependency updates
+- Run CI on each PR
+- Auto-merge passing patches (if configured) or request review for minor/major
+
+**Enable auto-merge:** Go to repo → Settings → Pull Requests → Check "Allow auto-merge"
+
+### Manual Updates
+
+```bash
+# Update Python dependencies
+cd backend
+pip install --upgrade pip
+pip list --outdated
+# Edit requirements.txt and run: pip install -r requirements.txt
+
+# Update Node dependencies
+cd frontend
+npm outdated
+npm update
+```
+
+## Security Scanning
+
+The CI pipeline includes:
+
+- **Ruff** linting (catches common bugs)
+- **Python coverage** (low coverage = risky code)
+- **Dependabot** (outdated dependencies)
+- **GitHub Actions security advisories** (notified automatically)
+
+For production deployments, consider:
+- OWASP dependency checks (`safety`, `pip-audit`)
+- Container scanning (Trivy, Snyk)
+- SAST scanning (Codacy, SonarCloud)
+
+## PR Coverage Comments
+
+When you open a PR, GitHub Actions will post a coverage delta comment showing:
+- Overall coverage %
+- Lines added/removed
+- Green (≥80%) / Orange (≥60%) / Red (<60%) thresholds
+
 ## Debugging CI Failures
 
 If tests fail in CI but pass locally:
@@ -335,7 +431,7 @@ If tests fail in CI but pass locally:
 ```bash
 # Full local test suite (from repo root)
 cd backend && PYTHONPATH=. pytest -q && ruff check linkedwifi_saas tests
-cd frontend && npm run lint && npm run build
+cd frontend && npm run lint && npm run test && npm run build
 
 # Run pre-commit against all files
 pre-commit run --all-files
@@ -345,12 +441,21 @@ ruff format backend
 
 # Generate coverage report
 cd backend && PYTHONPATH=. pytest --cov=linkedwifi_saas --cov-report=html
+cd frontend && npm run test:coverage
 
-# Start all services (Docker)
+# Start all services with Docker
 docker-compose -f docker-compose.local.yml up -d
 
 # Seed the database
-cd backend && python -m linkedwifi_saas.seed
+cd backend && . .venv/bin/activate && python -m linkedwifi_saas.seed
+
+# Build Docker images locally
+docker build -t linkedwifi-backend:dev ./backend
+docker build -t linkedwifi-frontend:dev ./frontend
+
+# Clean up Docker
+docker-compose -f docker-compose.local.yml down -v
+docker system prune -a
 ```
 
 ## Questions or Issues?
