@@ -138,6 +138,55 @@ jobs:
           fail_ci_if_error: false
           verbose: true
 
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Run frontend tests
+        working-directory: frontend
+        run: npm run test:coverage
+
+      - name: Upload frontend coverage XML
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage-xml
+          retention-days: 7
+          path: frontend/coverage/coverage-final.json
+
+      - name: Upload frontend coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./frontend/coverage/coverage-final.json
+          flags: frontend
+          name: frontend-coverage
+          fail_ci_if_error: false
+          verbose: true
+
   frontend-build:
     runs-on: ubuntu-latest
     steps:
@@ -158,13 +207,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Install and lint frontend
+      - name: Install and build frontend
         working-directory: frontend
         run: |
           npm ci
-          npm run lint
-
-      - name: Build frontend
-        working-directory: frontend
-        run: |
           npm run build
