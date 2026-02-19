@@ -110,6 +110,9 @@ ruff check linkedwifi_saas tests
 ```bash
 cd frontend
 npm run lint
+npm run test
+npm run test:watch      # Watch mode for development
+npm run test:coverage   # Generate coverage report
 npm run build
 ```
 
@@ -191,6 +194,38 @@ alembic upgrade head
 python -m linkedwifi_saas.seed
 ```
 
+## Frontend Testing Setup
+
+The repo uses **Jest** + **React Testing Library** for frontend unit and component tests.
+
+### Writing Tests
+
+Create test files in `frontend/__tests__/` or alongside components with `.test.tsx` or `.spec.tsx` extension:
+
+```typescript
+// frontend/__tests__/page.test.tsx
+import { render, screen } from '@testing-library/react'
+import Home from '@/app/page'
+
+describe('Home page', () => {
+  it('renders the landing page', () => {
+    render(<Home />)
+    expect(screen.getByText(/linkedwifi/i)).toBeInTheDocument()
+  })
+})
+```
+
+### Run tests locally:
+
+```bash
+cd frontend
+npm run test          # Run all tests once
+npm run test:watch   # Run in watch mode (re-run on file changes)
+npm run test:coverage # Run and generate coverage report
+```
+
+Coverage reports are generated in `frontend/coverage/` and uploaded to Codecov on CI.
+
 ## Development Workflow
 
 1. **Create a branch:**
@@ -225,22 +260,35 @@ git push origin feature/your-feature-name
 
 ## CI/CD Pipeline
 
-The repo uses **GitHub Actions** for automated testing, linting, and coverage checks.
+The repo uses **GitHub Actions** for automated testing, linting, and coverage checks across backend and frontend.
 
 ### What runs on every push/PR:
 
 - **Backend tests:** pytest with DB + Redis services, PYTHONPATH set
 - **Backend lint:** ruff check (E, F, I, B, UP rules)
-- **Frontend lint & build:** ESLint + Next.js build
-- **Coverage reports:** XML + HTML generated
-- **JUnit XML reports:** Test results for visibility
+- **Frontend tests:** Jest unit tests with coverage
+- **Frontend lint:** ESLint (Next.js config)
+- **Frontend build:** Next.js static build validation
+- **Coverage reports:** XML + HTML generated for both backend and frontend
+- **JUnit XML reports:** Structured test results for visibility
+- **Codecov integration:** Coverage trend tracking and PR delta comments
+
+### Parallel Jobs for Speed
+
+- `backend-tests` — Runs backend tests, linting, and coverage in parallel
+- `frontend-tests` — Runs frontend tests and linting in parallel
+- `frontend-build` — Builds the Next.js app (separate from tests)
+
+These jobs run in parallel, so total CI time is minimized.
 
 ### Artifacts uploaded to GitHub Actions:
 
-- `backend-coverage-xml` — Coverage in XML format (for integrations)
+- `backend-coverage-xml` — Coverage in XML format (for Codecov)
 - `backend-coverage-html` — Browsable coverage report
-- `backend-junit` — Test results in JUnit format
-- `backend-pytest-log` (on failure) — Full pytest output for debugging
+- `backend-junit` — Pytest results in JUnit format
+- `backend-pytest-log` (on failure only) — Full pytest output for debugging
+- `frontend-coverage-xml` — Frontend Jest coverage report
+- `frontend-jest` — Frontend test results (if added)
 
 **Artifact retention:** 7 days (auto-cleanup)
 
