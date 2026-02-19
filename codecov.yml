@@ -1,0 +1,31 @@
+coverage:
+  precision: 2
+  round: down
+  range:
+    - 60
+    - 100
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: false
+
+# Coverage thresholds
+ignore:
+  - "tests/"
+  - "alembic/"
+
+require:
+  changes: true
+  patch: 80
+  project: 80
+
+flags:
+  backend:
+    carryforward: true
+    paths:
+      - linkedwifi_saas/
+
+# Don't fail CI if Codecov is down (but still report)
+codecov:
+  require_ci_to_pass: true

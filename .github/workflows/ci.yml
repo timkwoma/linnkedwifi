@@ -128,6 +128,16 @@ jobs:
           MINIMUM_GREEN: 80
           MINIMUM_ORANGE: 60
 
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./backend/reports/coverage.xml
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+          verbose: true
+
   frontend-build:
     runs-on: ubuntu-latest
     steps:
