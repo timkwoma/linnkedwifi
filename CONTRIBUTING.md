@@ -49,7 +49,7 @@ npm install
 Create `frontend/.env.local`:
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_BASE=http://localhost:8000
 ```
 
 ## Pre-commit Hooks
